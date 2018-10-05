@@ -1,0 +1,9 @@
+spring:
+  
+  # define o nome da aplicação
+  application:
+    name: emprestimo-microservice
+    
+# define a porta onde será executada a aplicação
+server:
+  port: 8100
