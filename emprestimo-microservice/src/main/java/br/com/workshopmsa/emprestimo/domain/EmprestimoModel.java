@@ -1,4 +1,4 @@
-package br.com.workshopmsa.taxajuros.domain;
+package br.com.workshopmsa.emprestimo.domain;
 
 import java.math.BigDecimal;
 
@@ -11,9 +11,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class TaxaJurosResponse {
+public class EmprestimoModel {
 	
-	//private TaxaJurosModel taxaJuros;
+	private int parcelas;
+	private BigDecimal valorSolicitado;
+	private BigDecimal valorFinal;
+	
+	// Valores que serão preenchidos pela chamada ao microserviço de taxa de juros
 	private Long idProduto;
 	private BigDecimal jurosAm;
 	private int porta;

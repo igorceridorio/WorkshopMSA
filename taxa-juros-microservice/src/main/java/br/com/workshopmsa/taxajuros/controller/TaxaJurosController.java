@@ -17,7 +17,7 @@ import br.com.workshopmsa.taxajuros.domain.TaxaJurosResponse;
 import br.com.workshopmsa.taxajuros.domain.TaxasJurosResponse;
 
 @RestController
-@RequestMapping("taxajuros")
+@RequestMapping("taxasjuros")
 public class TaxaJurosController {
 	
 	@Autowired
@@ -62,11 +62,8 @@ public class TaxaJurosController {
 		
 		return TaxaJurosResponse
 				.builder()
-				.taxaJuros(TaxaJurosModel
-						.builder()
-						.idProduto(taxaJuros.getIdProduto())
-						.jurosAm(taxaJuros.getJurosAm())
-						.build())
+				.idProduto(taxaJuros.getIdProduto())
+				.jurosAm(taxaJuros.getJurosAm())
 				.porta(Integer.parseInt(environment.getProperty("local.server.port")))
 				.build();
 	}

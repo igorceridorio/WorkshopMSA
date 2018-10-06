@@ -9,7 +9,7 @@
 	<packaging>jar</packaging>
 
 	<name>taxa-juros-microservice</name>
-	<description>Demo project for Spring Boot</description>
+	<description>Microserviço de taxas de juros</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
