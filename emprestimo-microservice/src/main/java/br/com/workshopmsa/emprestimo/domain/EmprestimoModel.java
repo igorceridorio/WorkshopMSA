@@ -15,6 +15,7 @@ public class EmprestimoModel {
 	
 	private int parcelas;
 	private BigDecimal valorSolicitado;
+	private BigDecimal valorParcela;
 	private BigDecimal valorFinal;
 	
 	// Valores que serão preenchidos pela chamada ao microserviço de taxa de juros
