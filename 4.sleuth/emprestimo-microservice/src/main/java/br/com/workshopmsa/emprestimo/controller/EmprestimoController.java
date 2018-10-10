@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +21,8 @@ public class EmprestimoController {
 
 	@Autowired
 	private TaxaJurosServiceProxy taxaJurosServiceProxy;
+	
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	@GetMapping("/calculo/{idproduto}/{valor}/{parcelas}")
 	public EmprestimoModel calculoEmprestimo(
@@ -41,6 +45,7 @@ public class EmprestimoController {
 		emprestimo.setValorFinal(emprestimo.getValorParcela()
 				.multiply(BigDecimal.valueOf(emprestimo.getParcelas())));
 		
+		logger.info("{}", emprestimo);
 		return emprestimo;
 	}
 }
