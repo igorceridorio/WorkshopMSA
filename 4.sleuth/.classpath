@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="emprestimo-microservice/src/main/java"/>
+	<classpathentry kind="src" path="emprestimo-microservice/src/test/java"/>
+	<classpathentry kind="src" path="taxa-juros-microservice/src/main/java"/>
+	<classpathentry kind="src" path="taxa-juros-microservice/src/test/java"/>
+	<classpathentry kind="lib" path="emprestimo-microservice/.mvn/wrapper/maven-wrapper.jar"/>
+	<classpathentry kind="lib" path="taxa-juros-microservice/.mvn/wrapper/maven-wrapper.jar"/>
+	<classpathentry kind="output" path="emprestimo-microservice/target/classes"/>
+</classpath>
