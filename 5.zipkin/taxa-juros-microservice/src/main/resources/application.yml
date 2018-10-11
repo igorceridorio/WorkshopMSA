@@ -1,0 +1,28 @@
+spring:
+  
+  # define o nome da aplicação
+  application:
+    name: taxa-juros-microservice
+  
+  # configurações para conexão com o BD em memória
+  h2:
+    console:
+      enabled: true
+      path: /h2
+  datasource:
+    username: user
+    password: admin123
+    url: jdbc:h2:~/test;DB_CLOSE_ON_EXIT=FALSE;AUTO_SERVER=TRUE
+  jpa:
+    hibernate:
+      ddl-auto: create
+    
+# define a porta onde será executada a aplicação
+server:
+  port: 8000
+
+# define a localização do naming server para que o microsserviço se registre
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
