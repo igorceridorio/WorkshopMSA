@@ -16,7 +16,14 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
-    
+  # define a url onde o zipkin estará disponível
+  zipkin:
+    base-url: http://localhost:9411/
+  # logará 100% dos tracings
+  sleuth:
+    sampler:
+      probability: 1.0
+   
 # define a porta onde será executada a aplicação
 server:
   port: 8000
@@ -26,3 +33,4 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+      
