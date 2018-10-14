@@ -29,6 +29,13 @@ public class EmprestimoController {
 		// Realiza a chamada ao endpoint do outro microsserviço e obtém a resposta
 		EmprestimoModel emprestimo = taxaJurosServiceProxy.getTaxaJuros(idProduto);
 		
+		calculaValores(valorSolicitado, parcelas, emprestimo);
+		
+		return emprestimo;
+	}
+
+	private void calculaValores(BigDecimal valorSolicitado, int parcelas, EmprestimoModel emprestimo) {
+		
 		// Realiza a lógica do empréstimo baseado nos valores recebidos do microsserviço de taxa de juros
 		emprestimo.setParcelas(parcelas);
 		emprestimo.setValorSolicitado(valorSolicitado);
@@ -40,7 +47,5 @@ public class EmprestimoController {
 		
 		emprestimo.setValorFinal(emprestimo.getValorParcela()
 				.multiply(BigDecimal.valueOf(emprestimo.getParcelas())));
-		
-		return emprestimo;
 	}
 }

@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 @Data
 public class TaxaJurosResponse {
 	
-	//private TaxaJurosModel taxaJuros;
 	private Long idProduto;
 	private BigDecimal jurosAm;
 	private int porta;
