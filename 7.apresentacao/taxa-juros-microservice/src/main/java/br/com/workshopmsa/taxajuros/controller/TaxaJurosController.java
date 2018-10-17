@@ -3,6 +3,8 @@ package br.com.workshopmsa.taxajuros.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +28,8 @@ public class TaxaJurosController {
 	@Autowired
 	private TaxaJurosRepository taxaJurosRepository;
 	
+	private Logger logger = LoggerFactory.getLogger(this.getClass()); 
+	
 	@GetMapping("")
 	public TaxasJurosResponse getTaxasJuros() throws Exception {
 		
@@ -44,11 +48,14 @@ public class TaxaJurosController {
 					.build());
 		});
 		
-		return TaxasJurosResponse
+		TaxasJurosResponse response = TaxasJurosResponse
 				.builder()
 				.listaTaxasJuros(listaTaxasJurosModel)
 				.porta(Integer.parseInt(environment.getProperty("local.server.port")))
 				.build();
+		 
+		 logger.info("{}", response);
+		 return response;
 	}
 	
 	@GetMapping("/{idproduto}")
@@ -60,11 +67,14 @@ public class TaxaJurosController {
 			throw new Exception("Produto não localizado na base de dados");
 		}
 		
-		return TaxaJurosResponse
+		TaxaJurosResponse response = TaxaJurosResponse
 				.builder()
 				.idProduto(taxaJuros.getIdProduto())
 				.jurosAm(taxaJuros.getJurosAm())
 				.porta(Integer.parseInt(environment.getProperty("local.server.port")))
 				.build();
+		
+		logger.info("{}", response);
+		return response;
 	}
 }
