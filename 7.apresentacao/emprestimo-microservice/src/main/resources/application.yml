@@ -10,3 +10,6 @@ server:
   
 #taxa-juros-microservice.ribbon.listOfServers: http://localhost:8000, http://localhost:8001, http://localhost:8002
 eureka.client.serviceUrl.defaultZone: http://localhost:8761/eureka/
+
+# logará 100% dos tracings  
+sleuth.sampler.probability: 1.0
