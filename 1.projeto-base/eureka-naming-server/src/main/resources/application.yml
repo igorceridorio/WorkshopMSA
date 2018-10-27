@@ -1,0 +1,8 @@
+spring.application.name: eureka-naming-server
+server.port: 8761
+
+# não desejamos que o naming server seja descoberto por outras instâncias
+eureka.client.register-with-eureka: false
+
+# não desejamos que o naming server busque informações de outro naming server
+eureka.client.fetch-registry: false
