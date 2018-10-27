@@ -20,3 +20,5 @@ spring:
 # define a porta onde será executada a aplicação
 server:
   port: 8000
+  
+eureka.client.serviceUrl.defaultZone: http://localhost:8761/eureka/
