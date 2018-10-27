@@ -49,8 +49,8 @@ Neste momento a configuração de endereços da aplicação é a seguinte:
 
 |Serviço|Porta(s)|
 |-|-|
-|emprestimo-microservice|8100|
-|taxa-juros-microservice|8000|
+|emprestimo-microservice|`8100`|
+|taxa-juros-microservice|`8000`|
 
 Segue um exemplo de chamada ao serviço de empréstimos:
 
@@ -108,3 +108,16 @@ A partir de agora, o proxy não será mais o responsável por apontar o endereç
 Para testar suba a sua aplicação de taxa de juros nas três portas informadas acima: `8000, 8001` e `8002`. Você pode fazer isso facilmente passando `-Dserver.port=8001` e `-Dserver.port=8002` como parâmetros de execução da sua aplicação, ou definindo os valores das variáveis `SERVER_PORT` no *Run Configurations* do Eclipse, por exemplo. A configuração padrão já irá subir a primeira execução na porta `8000`.
 
 A partir de agora, ao fazer uma requisição de empréstimos você irá perceber na resposta que o atributo `porta` passará a vir cada hora com um valor diferente, alternando entre as instâncias do microsserviço de taxa de juros que estão de pé.
+
+Segue um diagrama com a representação do projeto atualizada:
+
+![Diagrama do projeto atualizado](https://i.imgur.com/qPm1dOl.png)
+
+Neste momento a configuração de endereços da aplicação é a seguinte:
+
+|Serviço|Porta(s)|
+|-|-|
+|emprestimo-microservice|`8100`|
+|taxa-juros-microservice|`8000, 8001, 8002`|
+
+Se uma instância cair ou alguma outra for adicionada, como o sistema se comportaria? Ele não seria capaz, hoje, de detectar alterações nas instâncias. para isso precisamos de um **naming server** e de um **server discovery**.
