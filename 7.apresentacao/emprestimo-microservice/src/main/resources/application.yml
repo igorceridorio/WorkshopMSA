@@ -7,3 +7,7 @@ spring:
 # define a porta onde será executada a aplicação
 server:
   port: 8100
+  
+#taxa-juros-microservice.ribbon.listOfServers: http://localhost:8000, http://localhost:8001, http://localhost:8002
+
+eureka.client.serviceUrl.defaultZone: http://localhost:8761/eureka/

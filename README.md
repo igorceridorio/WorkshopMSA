@@ -120,4 +120,92 @@ Neste momento a configuração de endereços da aplicação é a seguinte:
 |emprestimo-microservice|`8100`|
 |taxa-juros-microservice|`8000, 8001, 8002`|
 
-Se uma instância cair ou alguma outra for adicionada, como o sistema se comportaria? Ele não seria capaz, hoje, de detectar alterações nas instâncias. para isso precisamos de um **naming server** e de um **server discovery**.
+Se uma instância cair ou alguma outra for adicionada, como o sistema se comportaria? Ele não seria capaz, neste momento, de detectar alterações nas instâncias. para isso precisamos de um **naming server** e de um **server discovery**, utilizaremos o [Eureka](https://github.com/Netflix/eureka).
+
+## Eureka: Naming service <a name="eureka"></a>
+
+Os microsserviços precisam saber em quais portas e IPs os demais microsserviços podem ser encontrados. Desta maneira, se instâncias do microsserviço de taxa de juros caírem ou forem criadas, o microsserviço de empréstimos saberá quais dessas instâncias são ativas, quantas existem, e para quais endereços ele pode rotear suas chamadas. 
+
+Através das etapas abaixo vamos adicionar o naming server ao nosso ecossistema e configurar os microsserviços de taxa de juros e empréstimo para que eles se registrem no servidor Eureka.
+
+Dentro do diretório [1.projeto-base](https://github.com/igorceridorio/WorkshopMSA/tree/master/1.projeto-base) existe um terceiro projeto chamado **eureka-naming-server**. Ele será o nosso *naming server*, ou seja, é nele que os microsserviços do nosso sistema irão se registrar. O balanceador de carga que configuramos irá até ele para consultar o endereço das instâncias do microsserviço de taxa de juros disponíveis, esse mecanimo é conhecido por *service discovery*. 
+
+Importe o projeto **eureka-naming-server** do diretório e siga os seguintes passos:
+
+1. **[EurekaNamingServerApplication.java]** Habilite o servidor Eureka em seu projeto. Adicione a seguinte annotation na main class:
+
+	```java
+	@EnableEurekaServer
+	```
+2. **[application.yml - eureka-naming-server]** Precisamos agora definir algumas configurações: o nome desta aplicação, em qual porta desejamos rodar nosso *naming server*, e proteger nosso servidor para que ele não seja descoberto por outras instâncias e que não busque informações de outros *naming servers*.
+
+	```yml
+	spring.application.name: eureka-naming-server
+	server.port: 8761
+
+	# não desejamos que o naming server seja descoberto por outras instâncias
+	eureka.client.register-with-eureka: false
+
+	# não desejamos que o naming server busque informações de outro naming server
+	eureka.client.fetch-registry: false
+	```
+3. **[pom.xml - taxa-juros-microservice]** Adicione o **Eureka Client** na lista de dependências do microsserviço de taxa de juros.
+
+	```xml
+	<dependency>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+	</dependency>
+	```
+4.  **[TaxaJurosMicroserviceApplication.java]** Na main class da aplicação, adicione a seguinte annotation para permitir que o microsserviço seja "descoberto" pelo naming server.
+
+	```java
+	@EnableDiscoveryClient
+	```
+
+5. **[application.yml - taxa-juros-microservice]** Adicione a localização do servidor Eureka para que seja possível que o microsseriço se registre junto ao *naming server*.
+
+	```yml
+	eureka.client.serviceUrl.defaultZone: http://localhost:8761/eureka/
+	```
+6. **[pom.xml - emprestimo-microservice]** Adicione o **Eureka Client** na lista de dependências do microsserviço de empréstimos.
+
+	```xml
+	<dependency>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+	</dependency>
+	```
+7.  **[EmprestimoMicroserviceApplication.java]** Na main class da aplicação, adicione a seguinte annotation para permitir que o microsserviço seja "descoberto" pelo naming server.
+
+	```java
+	@EnableDiscoveryClient
+	```
+	
+8. **[application.yml - emprestimo-microservice]** Adicione a localização do servidor Eureka para que seja possível que o microsserviço se registre junto ao *naming server*. Comente ou remova a linha com a lista de servidores que antes era usada pelo Ribbon, afinal agora o Eureka é o responsável por manter em seus registros a lista de instâncias ativas do microsseriço de taxa de juros.
+
+	```yml
+	eureka.client.serviceUrl.defaultZone: http://localhost:8761/eureka/
+	#taxa-juros-microservice.ribbon.listOfServers: http://localhost:8000, http://localhost:8001, http://localhost:8002
+	```
+Para testarmos a aplicação, suba nesta ordem:
+
+1. eureka-naming-server
+2. taxa-juros-microservice (`8000`, `8001` e `8002`) 
+3. emprestimo-microservice
+	
+O *naming server* possui uma interface onde podemos verificar informações de quais instâncias estão de pé, bem como nomes e endereços das mesmas. Com a aplicação de pé basta acessar: http://localhost:8761.
+
+Segue um diagrama com a representação do projeto atualizada:
+
+![Diagrama do projeto atualizado](https://i.imgur.com/J1D5uKQ.png)
+
+Neste momento a configuração de endereços da aplicação é a seguinte:
+
+|Serviço|Porta(s)|
+|-|-|
+|emprestimo-microservice|`8100`|
+|taxa-juros-microservice|`8000, 8001, 8002`|
+|eureka-naming-server|`8761`|
+
+Com várias instâncias de pé, como debuggar e entender o que aconteceu com determinado request quando necessário? Precisamos de **tracing**, e para isso utilizaremos o [Sleuth](https://cloud.spring.io/spring-cloud-sleuth/).
