@@ -209,3 +209,61 @@ Neste momento a configuração de endereços da aplicação é a seguinte:
 |eureka-naming-server|`8761`|
 
 Com várias instâncias de pé, como debuggar e entender o que aconteceu com determinado request quando necessário? Precisamos de **tracing**, e para isso utilizaremos o [Sleuth](https://cloud.spring.io/spring-cloud-sleuth/).
+
+## Sleuth: Tracing <a name="sleuth"></a>
+
+No momento atual, os controllers das aplicaçãoes de taxa de juros e de empréstimos logam os responses dos requests ao seus endpoints. Você pode conferir isto dentro dos arquivos `EmprestimoController.java` e `TaxaJurosController.java`. No entanto, são apenas logs isolados, vamos agora transformar esses logs em rastros (ou **traces**). Com um trace, adicionamos um identificador único ao request, e este identificador se propaga até o serviço seguinte. No caso, o identificador gerado no emprestimo-microservice se propaga até o taxa-juros-microservice. Com isso, conseguimos analisar o caminho exato de um request, e caso ocorra algum problema com ele, conseguimos identificar o ponto onde isso ocorreu.
+
+Para adicionar tracing ao projeto basta seguir os passos abaixo:
+
+1. **[pom.xml - taxa-juros-microservice]** Adicione o **Starter Sleuth** na lista de dependências do microsserviço de taxa de juros.
+
+	```xml
+	<dependency>
+	        <groupId>org.springframework.cloud</groupId>
+	        <artifactId>spring-cloud-starter-sleuth</artifactId>
+	</dependency>
+	```
+2. **[application.yml - taxa-juros-microservice]** Defina a porcentagem de tracing que você deseja gerar.
+
+	```yml
+	# logará 100% dos tracings  
+	sleuth.sampler.probability: 1.0
+	```
+3. **[TaxaJurosMicroserviceApplication.java]** Adicione um `@Bean` que configura um `Sampler` para `ALWAYS_SAMPLE`.  Por padrão  o **Spring Cloud Sleuth** configura todos os seus traces como *não exportáveis*. Isto quer dizer que os traces aparecem no log, mas não aparecem em nenhum armazenamento remoto. Para poder exportar nossos traces, devemos declarar este bean. Ele será útil no próximo passo.
+
+	```java
+	@Bean  
+	public Sampler defaultSampler() {  
+		return Sampler.ALWAYS_SAMPLE;  
+	}
+	```
+4. **[pom.xml - emprestimo-microservice]** Adicione o **Starter Sleuth** na lista de dependências do microsserviço de empréstimos.
+
+	```xml
+	<dependency>
+	        <groupId>org.springframework.cloud</groupId>
+	        <artifactId>spring-cloud-starter-sleuth</artifactId>
+	</dependency>
+	```
+5. **[application.yml - emprestimo-microservice]** Defina a porcentagem de tracing que você deseja gerar.
+
+	```yml
+	# logará 100% dos tracings  
+	sleuth.sampler.probability: 1.0
+	```
+6. **[EmprestimoMicroserviceApplication.java]** Adicione um `@Bean` que configura um `Sampler` para `ALWAYS_SAMPLE`.  
+
+	```java
+	@Bean  
+	public Sampler defaultSampler() {  
+		return Sampler.ALWAYS_SAMPLE;  
+	}
+	```
+Ao executar sua aplicação, você notará que para cada vez que um de seus endpoints é acessado, no console, terá algo como:
+
+`[taxa-juros-microservice,2dc2df56169de8ac,67df8567c1afeb4a,false]` 
+
+Este é um **trace**! O primeiro campo é o nome do serviço no qual a requisição está sendo executada, o segundo é o **trace-id**, identificador único do request, o terceiro é o **span-id**, identificador único da operação, e o último é um booleano que indica se o trace está ou não sendo exportado para algum servidor.
+
+Os tracings ajudam, mas ainda é difícil visualizar qual caminho um request percorreu. Para isso, precisamos de um **Tracing Server**. Em nosso projeto, utilizaremos o [Zipkin](https://zipkin.io/).
