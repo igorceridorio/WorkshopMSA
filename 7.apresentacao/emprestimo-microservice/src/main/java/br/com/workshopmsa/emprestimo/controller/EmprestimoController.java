@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+
 import br.com.workshopmsa.emprestimo.domain.EmprestimoModel;
 import br.com.workshopmsa.emprestimo.proxy.TaxaJurosServiceProxy;
 
@@ -24,6 +26,7 @@ public class EmprestimoController {
 	private Logger logger = LoggerFactory.getLogger(this.getClass()); 
 	
 	@GetMapping("/calculo/{idproduto}/{valor}/{parcelas}")
+	@HystrixCommand(fallbackMethod = "calculoEmprestimoFallback")
 	public EmprestimoModel calculoEmprestimo(
 			@PathVariable("idproduto") Long idProduto,
 			@PathVariable("valor") BigDecimal valorSolicitado,
@@ -51,5 +54,24 @@ public class EmprestimoController {
 		
 		emprestimo.setValorFinal(emprestimo.getValorParcela()
 				.multiply(BigDecimal.valueOf(emprestimo.getParcelas())));
+	}
+	
+	public EmprestimoModel calculoEmprestimoFallback(
+		@PathVariable("idproduto") Long idProduto,
+		@PathVariable("valor") BigDecimal valorSolicitado,
+		@PathVariable("parcelas") int parcelas) throws Exception {
+		
+		logger.info("Erro ao tentar obter as informações de taxa de juros, utilizando valores default...");
+		EmprestimoModel emprestimo = new EmprestimoModel();
+		
+		// Atribuindo os valores que seriam retornados pelo microsserviço
+		emprestimo.setIdProduto(99L);
+		emprestimo.setJurosAm(new BigDecimal("0.99"));
+		emprestimo.setPorta(9999);
+		
+		calculaValores(valorSolicitado, parcelas, emprestimo);
+		
+		logger.info("{}", emprestimo);
+		return emprestimo;
 	}
 }
