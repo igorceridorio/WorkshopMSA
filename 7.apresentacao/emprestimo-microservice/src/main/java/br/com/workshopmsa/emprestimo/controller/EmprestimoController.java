@@ -52,4 +52,23 @@ public class EmprestimoController {
 		emprestimo.setValorFinal(emprestimo.getValorParcela()
 				.multiply(BigDecimal.valueOf(emprestimo.getParcelas())));
 	}
+	
+//	public EmprestimoModel calculoEmprestimoFallback(
+//		@PathVariable("idproduto") Long idProduto,
+//		@PathVariable("valor") BigDecimal valorSolicitado,
+//		@PathVariable("parcelas") int parcelas) throws Exception {
+//		
+//		logger.info("Erro ao tentar obter as informações de taxa de juros, utilizando valores default...");
+//		EmprestimoModel emprestimo = new EmprestimoModel();
+//		
+//		// Atribuindo os valores que seriam retornados pelo microsserviço
+//		emprestimo.setIdProduto(99L);
+//		emprestimo.setJurosAm(new BigDecimal("0.99"));
+//		emprestimo.setPorta(9999);
+//		
+//		calculaValores(valorSolicitado, parcelas, emprestimo);
+//		
+//		logger.info("{}", emprestimo);
+//		return emprestimo;
+//	}
 }
