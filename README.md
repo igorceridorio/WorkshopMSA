@@ -15,8 +15,9 @@ As instruções abaixo se baseiam no estado incial dos projetos exemplo, present
 2. [Ribbon: Load balancing ](#ribbon)
 3. [Eureka: Naming service](#eureka)
 4. [Sleuth: Tracing](#sleuth)
-5. [Zipikin: Distributed tracing server](#zipkin)
+5. [Zipkin: Distributed tracing server](#zipkin)
 6. [Hystrix: Fault tolerance](#hystrix)
+7. [Principais Referências](#referencias)
 
 ## Entendendo o projeto exemplo <a name="projeto-exemplo"></a>
 
@@ -267,3 +268,107 @@ Ao executar sua aplicação, você notará que para cada vez que um de seus endp
 Este é um **trace**! O primeiro campo é o nome do serviço no qual a requisição está sendo executada, o segundo é o **trace-id**, identificador único do request, o terceiro é o **span-id**, identificador único da operação, e o último é um booleano que indica se o trace está ou não sendo exportado para algum servidor.
 
 Os tracings ajudam, mas ainda é difícil visualizar qual caminho um request percorreu. Para isso, precisamos de um **Tracing Server**. Em nosso projeto, utilizaremos o [Zipkin](https://zipkin.io/).
+
+## Zipkin: Distributed tracing server <a name="zipkin"></a>
+
+
+O Zipkin tem o propósito de centralizar todo nosso tracing para que seja fácil rastrear requisições. Vamos agora fazer com que todo trace gerado pelo Sleuth passe a ser enviado para um servidor Zipkin.
+
+O servidor Zipkin vem em um `.jar` pronto para ser executado. A versão mais recente pode ser baixada [nesta página](https://github.com/openzipkin/zipkin/tree/master/zipkin-server). Faça o download do arquivo e o coloque em um diretório de sua preferência. Vamos agora preparar nossa aplicação para se comunicar com o servidor Zipkin.
+
+1. **[pom.xml - taxa-juros-microservice]** Adicione o **Sleuth Zipkin** na lista de dependências do microsserviço de taxa de juros.
+	```xml
+	<dependency>  
+		<groupId>org.springframework.cloud</groupId>  
+		<artifactId>spring-cloud-sleuth-zipkin</artifactId>  
+	</dependency>
+	```
+
+2. **[pom.xml - emprestimo-microservice]** Adicione o **Sleuth Zipkin** na lista de dependências do microsserviço de empréstimos.
+	```xml
+	<dependency>  
+		<groupId>org.springframework.cloud</groupId>  
+		<artifactId>spring-cloud-sleuth-zipkin</artifactId>  
+	</dependency>
+	```
+Para testarmos a aplicação enviandos os tracings para o servidor Zipkin, suba nesta ordem:
+
+3. eureka-naming-server
+4. zipkin-distributed-tracing-server
+	* Para executar o servidor Zipkin, vá até o diretório onde você salvou o `.jar` que baixou, abra um console e digite: `java -jar zipkin-server-2.11.7-exec`. No momento de escrita deste tutorial `zipkin-server-2.11.7-exec` era a versão mais recente do Zipkin server, caso você baixe outra versão, basta ajustar o comando.
+5. taxa-juros-microservice (`8000`, `8001` e `8002`) 
+6. emprestimo-microservice
+
+Após subir todos os projetos, realize algumas chamadas no microsserviço de empréstimos. Em seguida, para poder analisar o tracing gerado, basta acessar a URL do dashboard do Zipkin, que por padrão roda na porta `9411`. Neste caso, acesse: http://localhost:9411/zipkin/.
+
+Segue um diagrama com a representação do projeto atualizada:
+
+![Diagrama do projeto atualizado](https://i.imgur.com/jgGoV9A.png)
+
+Neste momento a configuração de endereços da aplicação é a seguinte:
+
+|Serviço|Porta(s)|
+|-|-|
+|emprestimo-microservice|`8100`|
+|taxa-juros-microservice|`8000, 8001, 8002`|
+|eureka-naming-server|`8761`|
+|zipkin-tracing-server|`9411`|
+
+## Hystrix: Fault tolerance <a name="hystrix"></a>
+
+O último tópico que abordaremos neste breve tutorial sobre Microsserviços com Java Spring é **tolerância a falhas**. 
+
+Extremamente importantes, estes mecanismos ajudam a evitar que o ecossistema todo caia e também ajudam a poupar recursos tentando identificar potenciais problemas com os microsserviços o mais rápido possível.
+
+O que aconteceria em nosso exemplo se, por exemplo, tentássemos pedir um plano de empréstimo para um produto que não existe? Como está implementado hoje receberíamos um erro e a aplicação não retornaria nenhuma informação que fizesse sentido.
+
+Vamos utilizar o [Hystrix](https://github.com/Netflix/Hystrix) e implementar um fallback para os casos de requests para produtos não existentes no microsserviço de taxa de juros.
+
+1. **[pom.xml - emprestimo-microservice]** Adicione o **Sleuth Hystrix** na lista de dependências do microsserviço de empréstimos.
+	```xml
+	<dependency>
+	    <groupId>org.springframework.cloud</groupId>
+	    <artifactId>spring-cloud-starter-hystrix</artifactId>
+	    <version>1.4.5.RELEASE</version>
+	</dependency>
+	```
+2. **[EmprestimoMicroserviceApplication.java]** Habilite o Hystrix para o projeto dentro da main class do microsserviço, adicionando a seguinte annotation:
+	```java
+	@EnableHystrix
+	```
+3. **[EmprestimoController.java]** No método desejado, defina o fallback para o caso de erro. Neste caso, nosso controller contém apenas um endpoint definido, o `calculoEmprestimo`, para este endpoint adicione:
+
+	```java
+	@HystrixCommand(fallbackMethod = "calculoEmprestimoFallback")
+	```
+4. **[EmprestimoController.java]** Crie o método de fallback com a mesma assinatura do método `calculoEmprestimo`, esse passo é importante, se as assinaturas forem diferentes o fallback não conseguirá ser acionado. Sinta-se a vontade para mudar o que este método deve fazer, a implementação abaixo é apenas uma sugestão.
+
+	```java
+	public EmprestimoModel calculoEmprestimoFallback(
+		@PathVariable("idproduto") Long idProduto,
+		@PathVariable("valor") BigDecimal valorSolicitado,
+		@PathVariable("parcelas") int parcelas) throws Exception {
+		
+		logger.info("Erro ao tentar obter as informações de taxa de juros, utilizando valores default...");
+		EmprestimoModel emprestimo = new EmprestimoModel();
+		
+		// Atribuindo os valores que seriam retornados pelo microsserviço
+		emprestimo.setIdProduto(99L);
+		emprestimo.setJurosAm(new BigDecimal("0.99"));
+		emprestimo.setPorta(9999);
+		
+		calculaValores(valorSolicitado, parcelas, emprestimo);
+		
+		logger.info("{}", emprestimo);
+		return emprestimo;
+	}
+	```
+Suba a sua aplicação com a ordem sugerida na seção anterior. Desta vez, tente fazer a requisição de empréstimo a um número de produto não existente. Você verá o Hystrix entrando em ação, e calculando os valores de empréstimo para o produto `99`, com taxa de juros `0.99`.
+
+É importante lembra que este é apenas um dos recursos que o Hystrix apresenta. Este tutorial, como um todo, é apenas a base do que se pode atingir com Spring Cloud aliado a arquitetura de microsserviços.
+
+## Principais Referências <a name="referencias"></a>
+
+* **Microservices: A practical guide. Principles, Concepts, and Recipes**. Eberhard Wolff
+* [Spring Cloud](http://cloud.spring.io/)
+* **Master Microservices with Spring Boot and Spring Cloud**. Udemy
