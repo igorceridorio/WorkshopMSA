@@ -225,13 +225,13 @@ Para adicionar tracing ao projeto basta seguir os passos abaixo:
 	        <artifactId>spring-cloud-starter-sleuth</artifactId>
 	</dependency>
 	```
-2. **[application.yml - taxa-juros-microservice]** Defina a porcentagem de tracing que você deseja gerar.
+2. **[application.yml - taxa-juros-microservice]** Defina a porcentagem de tracing que você deseja exportar.
 
 	```yml
-	# logará 100% dos tracings  
+	# exportará 100% dos tracings  
 	sleuth.sampler.probability: 1.0
 	```
-3. **[TaxaJurosMicroserviceApplication.java]** Adicione um `@Bean` que configura um `Sampler` para `ALWAYS_SAMPLE`.  Por padrão  o **Spring Cloud Sleuth** configura todos os seus traces como *não exportáveis*. Isto quer dizer que os traces aparecem no log, mas não aparecem em nenhum armazenamento remoto. Para poder exportar nossos traces, devemos declarar este bean. Ele será útil no próximo passo.
+3. **[TaxaJurosMicroserviceApplication.java]** Uma alternativa ao passo anterior é adiconar um `Sampler`. Adicione um `@Bean` que configura um `Sampler` para `ALWAYS_SAMPLE`.  Por padrão  o **Spring Cloud Sleuth** configura todos os seus traces como *não exportáveis*. Isto quer dizer que os traces aparecem no log, mas não aparecem em nenhum armazenamento remoto. Para poder exportar nossos traces, devemos declarar este bean. Ele será útil no próximo passo.
 
 	```java
 	@Bean  
@@ -247,13 +247,13 @@ Para adicionar tracing ao projeto basta seguir os passos abaixo:
 	        <artifactId>spring-cloud-starter-sleuth</artifactId>
 	</dependency>
 	```
-5. **[application.yml - emprestimo-microservice]** Defina a porcentagem de tracing que você deseja gerar.
+5. **[application.yml - emprestimo-microservice]** Defina a porcentagem de tracing que você deseja exportar.
 
 	```yml
-	# logará 100% dos tracings  
+	# exportará 100% dos tracings  
 	sleuth.sampler.probability: 1.0
 	```
-6. **[EmprestimoMicroserviceApplication.java]** Adicione um `@Bean` que configura um `Sampler` para `ALWAYS_SAMPLE`.  
+6. **[EmprestimoMicroserviceApplication.java]** Alternativamente, se desejado, adicione um `@Bean` que configura um `Sampler` para `ALWAYS_SAMPLE`.  
 
 	```java
 	@Bean  
